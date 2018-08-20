@@ -43,7 +43,6 @@ class Game
   end
 
   def show_board #shows board
-
     puts board.board_array[0..2].join(" ")
     puts board.board_array[3..5].join(" ")
     puts board.board_array[6..8].join(" ")
@@ -59,15 +58,14 @@ class Game
 
   def take_turn(current_player) # records player cell choice after checking if board is full
     self.show_board
-    return puts "Game is a draw" if board.board_array.all? {|cell| cell.is_a?(String)}
+    self.is_board_full
     puts "#{current_player.name}, pick a square"
     current_player.current_choice = gets.chomp.to_i
     while board.board_array.all?{|cell| cell != current_player.current_choice}
+      puts "\n"
       puts "#{current_player.name}, you must pick an unused cell"
       current_player.current_choice = gets.chomp.to_i
     end
-
-
     current_player.chosen_cells << current_player.current_choice
 
     self.place_piece(current_player)
@@ -76,7 +74,7 @@ class Game
   end
 
 
-  def place_piece(current_player) # updates board after player chooses cell
+  def place_piece(current_player) # places piece on board after player chooses cell
       board.board_array.map! do |cell|
         cell == current_player.current_choice ? cell = current_player.piece : cell
       end
@@ -94,13 +92,20 @@ class Game
         end
       end
     end
-
-    current_player == player1 ? current_player = player2 : current_player = player1
-    take_turn(current_player)
-
+    change_player(current_player)
   end
 
+  def change_player(current_player)
+    current_player == player1 ? current_player = player2 : current_player = player1
+    take_turn(current_player)
+  end
 
+  def is_board_full
+    if board.board_array.all? {|cell| cell.is_a?(String)}
+      puts "Game is a draw"
+      exit
+    end
+  end
 
 end
 
@@ -108,20 +113,16 @@ end
 
 
 class Player
-
   attr_accessor :name, :piece, :turn, :chosen_cells, :current_choice
 
   def initialize
     @starter = false
     @chosen_cells = []
-
   end
-
 end
 
 
 class Board
-
   def initialize
     @board_array = [1,2,3,4,5,6,7,8,9]
   end
@@ -129,18 +130,7 @@ class Board
   def board_array
     @board_array
   end
-
 end
-
-
-class Cell
-
-  def initialize
-  end
-
-end
-
-
 
 
 game = Game.new
