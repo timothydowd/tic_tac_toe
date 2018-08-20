@@ -53,58 +53,50 @@ class Game
 
   def game_start # creates board and chooses first player to start
     @board = Board.new
-    @player1.turn = true #remember to delete this code
-    #rand <= 0.5 ? @player1.turn = true : @player2.turn = true
-    self.take_turn
+    rand <= 0.5 ? self.take_turn(player1) : self.take_turn(player2)
   end
 
 
-  def take_turn # records player cell choice
+  def take_turn(current_player) # records player cell choice after checking if board is full
     self.show_board
-
-    if @player1.turn
-      puts "#{@player1.name}, choose a square:"
-      player1.current_choice = gets.chomp.to_i
-      player1.chosen_cells << player1.current_choice
-      self.place_piece
-    else
-      puts "#{@player2.name}, choose a square:"
-      player2.current_choice = gets.chomp.to_i
-      player2.chosen_cells << player1.current_choice
-      self.place_piece
+    return puts "Game is a draw" if board.board_array.all? {|cell| cell.is_a?(String)}
+    puts "#{current_player.name}, pick a square"
+    current_player.current_choice = gets.chomp.to_i
+    while board.board_array.all?{|cell| cell != current_player.current_choice}
+      puts "#{current_player.name}, you must pick an unused cell"
+      current_player.current_choice = gets.chomp.to_i
     end
+
+
+    current_player.chosen_cells << current_player.current_choice
+
+    self.place_piece(current_player)
     puts "\n"
-
-    self.check_combos
+    self.check_combos(current_player)
   end
 
 
-  def place_piece # updates board after player chooses cell
-    if @player1.turn
+  def place_piece(current_player) # updates board after player chooses cell
       board.board_array.map! do |cell|
-        cell == player1.current_choice ? cell = player1.piece : cell
+        cell == current_player.current_choice ? cell = current_player.piece : cell
       end
-    else
-      board.board_array.map! do |cell|
-        cell == player2.current_choice ? cell = player2.piece : cell
-      end
-    end
   end
 
-  def check_combos # checks to see if we have a winning combination
-    puts "in check_combos"
-    puts "player 1 chosen cells = #{player1.chosen_cells}"
+  def check_combos(current_player) # checks to see if we have a winning combination
     self.win_combos.each do |combo|
-      combo.each do |cell|
-        if player1.chosen_cells.any? { |chosen| chosen == cell}
-          
-          puts "match #{combo} #{cell}"
-          puts "\n"
+      match_count = 0
+      combo.each do |combo_cell|
+        if current_player.chosen_cells.any? { |chosen| chosen == combo_cell}
+          match_count += 1
+          return puts "#{current_player.name} is the winner!", self.show_board if match_count == 3
         else
-          puts "no match"
+          match_count
         end
       end
     end
+
+    current_player == player1 ? current_player = player2 : current_player = player1
+    take_turn(current_player)
 
   end
 
